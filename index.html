@@ -1,67 +1,350 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Summarizer</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookshelf Scanner</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    body {
+      background-color: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header Styles */
+    header {
+      background-color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: #333;
+      text-decoration: none;
+    }
+    
+    .logo-icon {
+      color: #4CAF50;
+      margin-right: 0.5rem;
+    }
+    
+    nav ul {
+      display: flex;
+      list-style: none;
+    }
+    
+    nav ul li {
+      margin-left: 1.5rem;
+    }
+    
+    nav ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    /* Main Content Styles */
+    main {
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .upload-section {
+      background-color: white;
+      border-radius: 8px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 700px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .upload-title {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    
+    .upload-description {
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+    
+    .drop-area {
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .drop-area:hover {
+      border-color: #999;
+    }
+    
+    .books-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      width: 100%;
+    }
+    
+    .book-card {
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .book-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      margin-bottom: 1rem;
+    }
+    
+    .book-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    
+    .book-author {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+    
+    .buy-now {
+      font-size: 0.9rem;
+      color: #666;
+      text-decoration: none;
+    }
+    
+    /* Footer Styles */
+    footer {
+      margin-top: auto;
+      padding: 2rem;
+      background-color: white;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .footer-section h3 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    
+    .footer-section ul {
+      list-style: none;
+    }
+    
+    .footer-section ul li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .footer-section ul li a {
+      color: #666;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    
+    .contact-info p {
+      margin-bottom: 0.5rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .contact-email {
+      color: #666;
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+      .books-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .books-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      footer {
+        flex-direction: column;
+      }
+      
+      .footer-section {
+        margin-bottom: 1.5rem;
+      }
+    }
+  </style>
 </head>
-<body class="container py-5">
-    <h2 class="text-center mb-4">Book Recognition & Summarization</h2>
-    <div class="mb-3 text-center">
-        <input type="file" id="imageInput" accept="image/*" class="form-control">
-        <button class="btn btn-primary mt-3" onclick="processImage()">Process Image</button>
-    </div>
-    <div id="results" class="mt-5"></div>
-
-    <script>
-        function processImage() {
-            const input = document.getElementById('imageInput');
-            if (input.files.length === 0) {
-                alert('Please select an image first.');
-                return;
-            }
-
-            const file = input.files[0];
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = 'Processing...';
-
-            Tesseract.recognize(file, 'eng', { logger: m => console.log(m) })
-                .then(({ data: { text } }) => {
-                    fetchBookInfo(text);
-                })
-                .catch(err => {
-                    resultsDiv.innerHTML = 'Error processing image: ' + err.message;
-                });
+<body>
+  <div class="container">
+    <header>
+      <a href="#" class="logo">
+        <span class="logo-icon">📚</span>
+        Bookshelf
+      </a>
+      <nav>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      <section class="upload-section">
+        <h2 class="upload-title">Upload Your Bookshelf Image</h2>
+        <p class="upload-description">Drop an image or click to upload a picture of your bookshelf, and we will list the books for you with links to buy them.</p>
+        <div class="drop-area" id="dropArea">
+          <!-- Empty area for drag & drop -->
+        </div>
+      </section>
+      
+      <section class="books-grid">
+        <div class="book-card">
+          <img src="/api/placeholder/400/320" alt="The Great Gatsby" class="book-image">
+          <h3 class="book-title">The Great Gatsby</h3>
+          <p class="book-author">by F. Scott Fitzgerald</p>
+          <a href="#" class="buy-now">Buy Now</a>
+        </div>
+        
+        <div class="book-card">
+          <img src="/api/placeholder/400/320" alt="1984" class="book-image">
+          <h3 class="book-title">1984</h3>
+          <p class="book-author">by George Orwell</p>
+          <a href="#" class="buy-now">Buy Now</a>
+        </div>
+        
+        <div class="book-card">
+          <img src="/api/placeholder/400/320" alt="To Kill a Mockingbird" class="book-image">
+          <h3 class="book-title">To Kill a Mockingbird</h3>
+          <p class="book-author">by Harper Lee</p>
+          <a href="#" class="buy-now">Buy Now</a>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <div class="footer-section">
+        <h3>Resources</h3>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h3>Contact Us</h3>
+        <div class="contact-info">
+          <p>Email: <a href="mailto:support@bookshelfscanner.com" class="contact-email">support@bookshelfscanner.com</a></p>
+          <p>Phone: +1 (234) 567-890</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const dropArea = document.getElementById('dropArea');
+      
+      // Handle drag events
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      // Visual feedback when dragging over the drop area
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+      });
+      
+      function highlight() {
+        dropArea.style.borderColor = '#999';
+        dropArea.style.backgroundColor = '#f9f9f9';
+      }
+      
+      function unhighlight() {
+        dropArea.style.borderColor = '#ccc';
+        dropArea.style.backgroundColor = 'transparent';
+      }
+      
+      // Handle file drop
+      dropArea.addEventListener('drop', handleDrop, false);
+      dropArea.addEventListener('click', function() {
+        // Create and trigger file input when clicked
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.click();
+        
+        fileInput.addEventListener('change', function() {
+          if (this.files && this.files[0]) {
+            // Handle the selected file
+            console.log('File selected:', this.files[0].name);
+            // Here you would normally process the image
+          }
+        });
+      });
+      
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files && files.length) {
+          console.log('File dropped:', files[0].name);
+          // Here you would normally process the image
         }
-
-        function fetchBookInfo(query) {
-            const resultsDiv = document.getElementById('results');
-            const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`;
-
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.totalItems > 0) {
-                        const book = data.items[0].volumeInfo;
-                        resultsDiv.innerHTML = `
-                            <h4>${book.title}</h4>
-                            <p><strong>Author:</strong> ${book.authors ? book.authors.join(', ') : 'Unknown'}</p>
-                            <p>${book.description ? book.description.substring(0, 500) + '...' : 'No description available.'}</p>
-                            <a href="${book.infoLink}" target="_blank" class="btn btn-success">View & Buy Book</a>
-                        `;
-                    } else {
-                        resultsDiv.innerHTML = 'No books found matching the image.';
-                    }
-                })
-                .catch(err => {
-                    resultsDiv.innerHTML = 'Error fetching book information: ' + err.message;
-                });
-        }
-    </script>
+      }
+    });
+  </script>
 </body>
 </html>
-
-
