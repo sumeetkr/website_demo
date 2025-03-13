@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bookshelf Scanner</title>
-  <!-- Load Tesseract.js from unpkg CDN which is more reliable -->
-  <script src="https://unpkg.com/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+  <!-- v2 only (more reliable to use one version) -->
+  <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
   <style>
     * {
       margin: 0;
@@ -345,6 +345,15 @@
       const booksGrid = document.getElementById('booksGrid');
       let fileInput = null;
       
+      // Ensure Tesseract is loaded properly
+      let tesseractLoaded = false;
+      
+      // Create a timeout to check if Tesseract is loaded
+      setTimeout(() => {
+        tesseractLoaded = typeof Tesseract !== 'undefined';
+        console.log("Tesseract library loaded status:", tesseractLoaded);
+      }, 1000); // Give it time to load
+      
       // Handle drag events
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, preventDefaults, false);
@@ -409,8 +418,21 @@
             previewImg.src = e.target.result;
             imagePreview.style.display = 'block';
             
-            // Start OCR process
-            processImage(e.target.result);
+            // Check if Tesseract is available before starting OCR
+            if (tesseractLoaded) {
+              // Start OCR process
+              processImage(e.target.result);
+            } else {
+              console.warn('Tesseract library not fully loaded, attempting to use it anyway...');
+              // Try to use Tesseract even if the check failed
+              if (typeof Tesseract !== 'undefined') {
+                tesseractLoaded = true;
+                processImage(e.target.result);
+              } else {
+                // Fall back to simulation if no Tesseract
+                simulateOCRAndSearch();
+              }
+            }
           };
           fileReader.readAsDataURL(file);
         }
@@ -529,11 +551,10 @@
         });
       }
 
-      // For demo purposes, create a fallback function that simulates OCR
+      // Simulation function for when Tesseract isn't available
       function simulateOCRAndSearch() {
-        // Hide the real loading indicator, show a simulated one
         loadingIndicator.style.display = 'block';
-        updateProgress(0, 'Starting analysis...');
+        updateProgress(0, 'Starting analysis (simulation mode)...');
         
         // Clear any existing books
         booksGrid.innerHTML = '';
@@ -584,19 +605,6 @@
             }, 800);
           }, 1000);
         }, 800);
-      }
-      
-      // Check if Tesseract is available, if not, set up a fallback
-      if (typeof Tesseract === 'undefined') {
-        console.warn('Tesseract library not available, using simulation mode');
-        // Override processImage function
-        processImage = function(imageUrl) {
-          // Display the image preview
-          previewImg.src = imageUrl;
-          imagePreview.style.display = 'block';
-          // Run the simulation
-          simulateOCRAndSearch();
-        };
       }
       
       // Display the initial books
